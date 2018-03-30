@@ -506,7 +506,7 @@ end
 
 figure (1);
 plot(0:k-1,f1,0:k-1,f_d);
-xlabel('$t\,(mins)$','Interpreter','latex')
+xlabel('$t\,(min)$','Interpreter','latex')
 xlim([0 T-1])
 ylabel('$\tilde{c}_0 E[f_t(q^g)]+\tilde{c}_n\sum\limits_{n \in n_q }\left | q^g \right | $','Interpreter','latex')
 x_t = round(T/4,0);
@@ -562,7 +562,7 @@ end
 figure (2)
  
 plot(0:k-1,f1,0:k-1,f_d,0:k-1,f2*ones(1,T),0:k-1,f3*ones(1,T))
-xlabel('$t\,(mins)$','Interpreter','latex')
+xlabel('$t\,(min)$','Interpreter','latex')
 xlim([0 T-1])
 ylabel('$\tilde{c}_0 E[f_t(q^g)]+\tilde{c}_n\sum\limits_{n \in n_q }\left | q^g \right | $','Interpreter','latex')
 x_t = round(T/4,0);
@@ -578,20 +578,6 @@ cd 'C:\Users\Saeed\OneDrive\UMBC\Dr. Kim\My papers\Matlab\First Paper\COMD'
 
 
 figure (3)
-plot(0:k-1,sigma_min)
-xlabel('$t\,(mins)$','Interpreter','latex')
-xlim([0 T-1])
-ylabel('$\sigma_{min}$','Interpreter','latex')
-x_t = round(T/4,0);
-y_t = f1(x_t,1);
-txt = ['$\sigma_{noise} ^ 2 =$',num2str(var_1,'%2.2f'),'$\,\,\,\,\eta =$',num2str(eta,'%1.0f'),'$\,\,\,\,c_n =$',num2str(c_n,'%2.5f'),'$\,\,\,\,\sigma_{PV} ^ 2 =$',num2str(var_2,'%2.2f')];
-text(x_t,y_t,txt,'interpreter','latex')
-legend({'\,Minimum \,Singular \.Value \,of \,Jacobian'},'interpreter','latex')
-
-fig_3 = figure (3);
-cd 'C:\Users\Saeed\OneDrive\UMBC\Dr. Kim\My papers\Matlab\First Paper\Figures_COMD-of-Loss'
-saveas(fig_3,sprintf('All_var_noise=%2.2f_eta=%1.0f_c_n=%2.5f_T=%d_var_PV=%2.3f.png',var_1,eta,c_n,T-1,var_2));
-cd 'C:\Users\Saeed\OneDrive\UMBC\Dr. Kim\My papers\Matlab\First Paper\COMD'
 
 toc
 
