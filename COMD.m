@@ -312,15 +312,21 @@ p_g_nom = PV_ratio*p_g_max;
 % ------------ % Initial reactive power for running OMD % ------------ % 
 q_g = zeros(PV_n,1);
 % ------------ % Number of periods % ------------ %
-T = 121;
+T = 11;
 % ------------ % Number of realization of OMD % ------------ %
 num_real = 1;
 % ------------ % The variance of changing loads and PVs % ------------ %
-var_1 = 0.08;
-var_2 = 0.001;
+var_1 = 0.0;
+var_2 = 0.0;
 % ------------ % The OMD's parameter % ------------ %
-eta = 2;
+eta = 4;
 c_n = 1/80;
+
+% ------------ % Preallocation of vectors to avoid wasting time % ------------ %
+sigma_min_act = zeros(T,1);
+c5 = zeros(T,1);
+% ------------ ------------ ------------ ------------ ------------ %
+
 
 % ------------ % Stochastic OMD % ------------ %
 % ------------ % Stochastic OMD % ------------ %
@@ -340,6 +346,40 @@ q_g_min = -p_g_rand;
 % ------------ % The real loss of network (c0) without noise % ------------ %
 
 [c0(o,k),P_r, Q_r,l_r,vms_r] = DistFlowSolver_vms(nbr,n,r,x,p_c,q_c,p_g_rand,q_g,children,injection_matrix,parent,PV_matrix,PV_n,zeros(n,1),zeros(n,1),0);
+
+
+% ------------ % Finding minimum singular value % ------------ %
+
+[~,delta,I_line] = PhaseRecovery_I(n,nbr,nf,nt,r,x,P_r,Q_r);
+
+I_check = ( abs(I_line) ).^2 - l_r; 
+
+cd 'C:\Users\Saeed\OneDrive\Matpower\matpower6.0'
+
+filename='case47';
+mpc=loadcase(filename);
+mpc.bus(:,8) = sqrt(vms_r(2:end));
+mpc.bus(:,9) = delta(2:end);
+jac = full(makeJac(mpc));
+sigma_min_act(k,1) = min(svd(jac));
+
+cd 'C:\Users\Saeed\OneDrive\UMBC\Dr. Kim\My papers\Matlab\First Paper\COMD'
+
+
+cvx_begin 
+
+variables  sigma_min 
+dual variables  y8
+      
+c5 = -sigma_min;
+      minimize c5
+      
+         y8 : jac'*jac - sigma_min*eye(2*(n-2)-PV_n,2*(n-2)-PV_n) >= 0
+         
+%          sigma_min>= 0
+ cvx_end
+
+
 
 % ------------ % Finding the dual variables y2 corresponding to q_g's from the dual problem with noise % ------------ %
 
@@ -480,7 +520,7 @@ end
 
 figure (1);
 plot(0:k-1,f1,0:k-1,f_d);
-xlabel('$t\,(min)$','Interpreter','latex')
+xlabel('$t\,(mins)$','Interpreter','latex')
 xlim([0 T-1])
 ylabel('$\tilde{c}_0 E[f_t(q^g)]+\tilde{c}_n\sum\limits_{n \in n_q }\left | q^g \right | $','Interpreter','latex')
 x_t = round(T/4,0);
@@ -490,9 +530,9 @@ text(x_t,y_t,txt,'interpreter','latex')
 legend({'OMD(Stochastic)','OMD(Deterministic)'},'interpreter','latex')
 
 fig_1 = figure (1);
-cd 'C:\Users\Saeed\OneDrive\UMBC\Dr. Kim\My papers\Matlab\First Paper\Figures_OMD-of-Loss'
+cd 'C:\Users\Saeed\OneDrive\UMBC\Dr. Kim\My papers\Matlab\First Paper\Figures_COMD-of-Loss'
 saveas(fig_1,sprintf('OMD_St_vs_De_var_noise=%2.2f_eta=%1.0f_c_n=%2.5f_T=%d_var_PV=%2.3f.png',var_1,eta,c_n,T-1,var_2));
-cd 'C:\Users\Saeed\OneDrive\UMBC\Dr. Kim\My papers\Matlab\First Paper\OMD-of-Loss'
+cd 'C:\Users\Saeed\OneDrive\UMBC\Dr. Kim\My papers\Matlab\First Paper\COMD'
 
 
 
@@ -536,7 +576,7 @@ end
 figure (2)
  
 plot(0:k-1,f1,0:k-1,f_d,0:k-1,f2*ones(1,T),0:k-1,f3*ones(1,T))
-xlabel('$t\,(min)$','Interpreter','latex')
+xlabel('$t\,(mins)$','Interpreter','latex')
 xlim([0 T-1])
 ylabel('$\tilde{c}_0 E[f_t(q^g)]+\tilde{c}_n\sum\limits_{n \in n_q }\left | q^g \right | $','Interpreter','latex')
 x_t = round(T/4,0);
@@ -546,9 +586,26 @@ text(x_t,y_t,txt,'interpreter','latex')
 legend({'OMD(Stochastic)','OMD(Deterministic)','Convex Problem','Unconstrained $q^g$'},'interpreter','latex')
 
 fig_2 = figure (2);
-cd 'C:\Users\Saeed\OneDrive\UMBC\Dr. Kim\My papers\Matlab\First Paper\Figures_OMD-of-Loss'
+cd 'C:\Users\Saeed\OneDrive\UMBC\Dr. Kim\My papers\Matlab\First Paper\Figures_COMD-of-Loss'
 saveas(fig_2,sprintf('All_var_noise=%2.2f_eta=%1.0f_c_n=%2.5f_T=%d_var_PV=%2.3f.png',var_1,eta,c_n,T-1,var_2));
-cd 'C:\Users\Saeed\OneDrive\UMBC\Dr. Kim\My papers\Matlab\First Paper\OMD-of-Loss'
+cd 'C:\Users\Saeed\OneDrive\UMBC\Dr. Kim\My papers\Matlab\First Paper\COMD'
+
+
+figure (3)
+plot(0:k-1,sigma_min_act)
+xlabel('$t\,(mins)$','Interpreter','latex')
+xlim([0 T-1])
+ylabel('$\sigma_{min}$','Interpreter','latex')
+x_t = round(T/4,0);
+y_t = f1(x_t,1);
+txt = ['$\sigma_{noise} ^ 2 =$',num2str(var_1,'%2.2f'),'$\,\,\,\,\eta =$',num2str(eta,'%1.0f'),'$\,\,\,\,c_n =$',num2str(c_n,'%2.5f'),'$\,\,\,\,\sigma_{PV} ^ 2 =$',num2str(var_2,'%2.2f')];
+text(x_t,y_t,txt,'interpreter','latex')
+legend({'\,Minimum \,Singular \.Value \,of \,Jacobian'},'interpreter','latex')
+
+fig_3 = figure (3);
+cd 'C:\Users\Saeed\OneDrive\UMBC\Dr. Kim\My papers\Matlab\First Paper\Figures_COMD-of-Loss'
+saveas(fig_3,sprintf('MinSingularValue_var_noise=%2.2f_eta=%1.0f_c_n=%2.5f_T=%d_var_PV=%2.3f.png',var_1,eta,c_n,T-1,var_2));
+cd 'C:\Users\Saeed\OneDrive\UMBC\Dr. Kim\My papers\Matlab\First Paper\COMD'
 
 toc
 
