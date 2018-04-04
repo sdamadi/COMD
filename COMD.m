@@ -312,19 +312,28 @@ p_g_nom = PV_ratio*p_g_max;
 % ------------ % Initial reactive power for running OMD % ------------ % 
 q_g = zeros(PV_n,1);
 % ------------ % Number of periods % ------------ %
-T = 121;
+T = 31;
 % ------------ % Number of realization of OMD % ------------ %
 num_real = 1;
 % ------------ % The variance of changing loads and PVs % ------------ %
-var_1 = 0.0;
-var_2 = 0.0;
+var_1 = 0.05;
+var_2 = 0.02;
 % ------------ % The OMD's parameter % ------------ %
 eta = 4;
 c_n = 1/80;
 
 % ------------ % Preallocation of vectors to avoid wasting time % ------------ %
+c0 = zeros(num_real,T);
+c1 = zeros(num_real,T);
+y2_s = zeros(n-1,1);
+eps1 = zeros(n,1);
+eps2 = zeros(n,1);
+q_t = zeros(1,PV_n);
 sigma_min_act = zeros(T,1);
-c5 = zeros(T,1);
+f1 = zeros(T,1);
+q_online = zeros(PV_n,1,T);
+sigma_min_online = zeros(T,1);
+p_g_rand = zeros(PV_n,1,T);
 % ------------ ------------ ------------ ------------ ------------ %
 
 
@@ -334,18 +343,22 @@ c5 = zeros(T,1);
 % ------------ % Stochastic OMD % ------------ %
 % ------------ % Stochastic OMD % ------------ %
 
+q_g_max = 0.45*p_g_nom;
+q_g_min = -p_g_nom;
 
 for o = 1:num_real
 
 for k = 1:T
     k
-p_g_rand = p_g_nom + var_2*randn(PV_n,1);
-q_g_max = 0.45*p_g_rand;
-q_g_min = -p_g_rand;
+% for j2 = 1:PV_n
+    
+p_g_rand(:,:,k) = p_g_nom + var_2*randn(PV_n,1);
+
+% end
 
 % ------------ % The real loss of network (c0) without noise % ------------ %
 
-[c0(o,k),P_r, Q_r,l_r,vms_r] = DistFlowSolver_vms(nbr,n,r,x,p_c,q_c,p_g_rand,q_g,children,injection_matrix,parent,PV_matrix,PV_n,zeros(n,1),zeros(n,1),0);
+[c0(o,k),P_r, Q_r,l_r,vms_r] = DistFlowSolver_vms(nbr,n,r,x,p_c,q_c,p_g_rand(:,:,k),q_g,children,injection_matrix,parent,PV_matrix,PV_n,zeros(n,1),zeros(n,1),0);
 
 
 % ------------ % Finding minimum singular value % ------------ %
@@ -371,7 +384,7 @@ cd 'C:\Users\Saeed\OneDrive\UMBC\Dr. Kim\My papers\Matlab\First Paper\COMD'
 eps1(:,k) = randn(n,1);%zeros(n,1);
 eps2(:,k) = randn(n,1);%zeros(n,1);
 
-[c1(o,k),P_s,Q_s,l_s,vms_s,y2(:,k),~] = DistFlowSolver_vms(nbr,n,r,x,p_c,q_c,p_g_rand,q_g,children,injection_matrix,parent,PV_matrix,PV_n,eps1(:,k),eps2(:,k),var_1);
+[c1(o,k),P_s,Q_s,l_s,vms_s,y2(:,k),~] = DistFlowSolver_vms(nbr,n,r,x,p_c,q_c,p_g_rand(:,:,k),q_g,children,injection_matrix,parent,PV_matrix,PV_n,eps1(:,k),eps2(:,k),var_1);
 
 % ------------ % Cost regarding real loss c0 and q_g's achieved from OMD % ------------ %
 
