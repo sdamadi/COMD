@@ -312,7 +312,7 @@ p_g_nom = PV_ratio*p_g_max;
 % ------------ % Initial reactive power for running OMD % ------------ % 
 q_g = zeros(PV_n,1);
 % ------------ % Number of periods % ------------ %
-T = 11;
+T = 121;
 % ------------ % Number of realization of OMD % ------------ %
 num_real = 1;
 % ------------ % The variance of changing loads and PVs % ------------ %
@@ -364,21 +364,6 @@ jac = full(makeJac(mpc));
 sigma_min_act(k,1) = min(svd(jac));
 
 cd 'C:\Users\Saeed\OneDrive\UMBC\Dr. Kim\My papers\Matlab\First Paper\COMD'
-
-
-cvx_begin 
-
-variables  sigma_min 
-dual variables  y8
-      
-c5 = -sigma_min;
-      minimize c5
-      
-         y8 : jac'*jac - sigma_min*eye(2*(n-2)-PV_n,2*(n-2)-PV_n) >= 0
-         
-%          sigma_min>= 0
- cvx_end
-
 
 
 % ------------ % Finding the dual variables y2 corresponding to q_g's from the dual problem with noise % ------------ %
