@@ -312,12 +312,12 @@ p_g_nom = PV_ratio*p_g_max;
 % ------------ % Initial reactive power for running OMD % ------------ % 
 q_g = zeros(PV_n,1);
 % ------------ % Number of periods % ------------ %
-T = 31;
+T = 121;
 % ------------ % Number of realization of OMD % ------------ %
 num_real = 1;
 % ------------ % The variance of changing loads and PVs % ------------ %
 var_1 = 0.05;
-var_2 = 0.02;
+var_2 = 0.01;
 % ------------ % The OMD's parameter % ------------ %
 eta = 4;
 c_n = 1/80;
@@ -558,6 +558,17 @@ end
 
  [c3,P_noconq, Q_noconq,l_noconq,vms_noconq,y2,y4,q_g_3] = Optimal_DistFlowSolver_vms(nbr,n,PV_n,r,x,p_c,q_c,p_g,q_g,children,injection_matrix,parent,PV_matrix,zeros(n,1),zeros(n,1),0,c_n);
  
+ cd 'C:\Users\Saeed\OneDrive\Matpower\matpower6.0'
+
+filename='case47';
+mpc=loadcase(filename);
+mpc.bus(:,8) = sqrt(vms_r(2:end));
+mpc.bus(:,9) = delta(2:end);
+jac = full(makeJac(mpc));
+sigma_min_unconst = min(svd(jac));
+
+cd 'C:\Users\Saeed\OneDrive\UMBC\Dr. Kim\My papers\Matlab\First Paper\COMD'
+ 
  % ------------ % Check feasibility of the answer % ------------ % 
  
  for i=1:nbr
@@ -590,7 +601,7 @@ cd 'C:\Users\Saeed\OneDrive\UMBC\Dr. Kim\My papers\Matlab\First Paper\COMD'
 
 
 figure (3)
-plot(0:k-1,sigma_min_act)
+plot(0:k-1,sigma_min_act,0:k-1,sigma_min_unconst*ones(T,1))
 xlabel('$t\,(mins)$','Interpreter','latex')
 xlim([0 T-1])
 ylabel('$\sigma_{min}$','Interpreter','latex')
@@ -604,6 +615,17 @@ fig_3 = figure (3);
 cd 'C:\Users\Saeed\OneDrive\UMBC\Dr. Kim\My papers\Matlab\First Paper\Figures_COMD-of-Loss'
 saveas(fig_3,sprintf('MinSingularValue_var_noise=%2.2f_eta=%1.0f_c_n=%2.5f_T=%d_var_PV=%2.3f.png',var_1,eta,c_n,T-1,var_2));
 cd 'C:\Users\Saeed\OneDrive\UMBC\Dr. Kim\My papers\Matlab\First Paper\COMD'
+
+
+figure (4)
+
+pg1 = reshape(p_g_rand(1,1,1:T),[T 1]);
+pg2 = reshape(p_g_rand(2,1,1:T),[T 1]);
+pg3 = reshape(p_g_rand(3,1,1:T),[T 1]);
+pg4 = reshape(p_g_rand(4,1,1:T),[T 1]);
+pg5 = reshape(p_g_rand(5,1,1:T),[T 1]);
+plot(0:T-1,pg1,0:T-1,pg2,0:T-1,pg3,0:T-1,pg4,0:T-1,pg5)
+
 
 toc
 
