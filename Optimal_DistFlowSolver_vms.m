@@ -4,7 +4,7 @@ cvx_begin quiet
 variables  P(nbr) Q(nbr) l(nbr) vms(n) q_g(PV_n)  
 dual variables y1 y2 y3 y4 y5 y6{nbr} y7
       
-c = r'*l + c_n*( abs(q_g(1)) +abs(q_g(2)) + abs(q_g(3)) + abs(q_g(4)) + abs(q_g(5)) );
+c = r'*l;% + c_n*( abs(q_g(1)) +abs(q_g(2)) + abs(q_g(3)) + abs(q_g(4)) + abs(q_g(5)) );
       minimize c
       
         y1 :      P    == children*P + diag(r)*l    +  injection_matrix*( var*eps1 + p_c - p_g )
